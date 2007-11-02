@@ -48,7 +48,7 @@ set_man_symlink() {
 	popd 1>/dev/null
 }
 
-# set python and python.1 symlinks
+# set python and python.1 symlinks
 set_symlinks() {
 	local target="${1}" targets=($(find_targets ))
 	if is_number "${target}" && [[ ${target} -ge 1 ]] ; then
@@ -105,7 +105,7 @@ do_list() {
 	fi
 }
 
-### set action ###
+### set action ###
 
 describe_set() {
 	echo "Set active python interpreter."
@@ -129,7 +129,7 @@ do_set() {
 	fi
 }
 
-### update action ###
+### update action ###
 
 describe_update() {
 	echo "Switch to the most recent CPython."
