@@ -4,7 +4,7 @@
 
 DESCRIPTION="Manage the /usr/bin/python and python.1 man symlinks."
 MAINTAINER="hawking@gentoo.org"
-SVN_DATE='$Date: 2007-11-02 02:49:58 +0200 (Fri, 02 Nov 2007) $'
+SVN_DATE='$Date: 2007-11-19 16:37:31 +0200 (Mon, 19 Nov 2007) $'
 VERSION=$(svn_date_to_version "${SVN_DATE}" )
 
 INTERPRETER_PATH="${ROOT}/usr/bin/"
@@ -23,7 +23,7 @@ find_targets() {
 
 # try to remove python and python.1 symlinks
 remove_symlinks() {
-	rm -f "${INTERPRETER_PATH}"python &>/dev/null && \
+	rm -f "${INTERPRETER_PATH}"{idle,pydoc,python,python-config} &>/dev/null && \
 	rm -f "${MAN_PATH}"python.1{,.gz,.bz2} &>/dev/null
 }
 
@@ -64,6 +64,9 @@ set_symlinks() {
 	
 		pushd "${INTERPRETER_PATH}" 1>/dev/null
 		ln -nfs "${INTERPRETER_PATH}${target}" python
+		ln -nfs "${INTERPRETER_PATH}${target/python/python-config-}" python-config
+		ln -nfs "${INTERPRETER_PATH}${target/python/pydoc}" pydoc
+		ln -nfs "${INTERPRETER_PATH}${target/python/idle}" idle
 		popd 1>/dev/null
 	else
 		die -q "Target \"${1}\" doesn't appear to be valid!"
