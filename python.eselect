@@ -4,7 +4,7 @@
 
 DESCRIPTION="Manage the /usr/bin/python and python.1 man symlinks."
 MAINTAINER="hawking@gentoo.org"
-SVN_DATE='$Date: 2007-11-19 16:37:31 +0200 (Mon, 19 Nov 2007) $'
+SVN_DATE='$Date$'
 VERSION=$(svn_date_to_version "${SVN_DATE}" )
 
 INTERPRETER_PATH="${ROOT}/usr/bin/"
