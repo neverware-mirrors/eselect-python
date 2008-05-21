@@ -24,14 +24,14 @@ find_targets() {
 # try to remove python and python.1 symlinks
 remove_symlinks() {
 	rm -f "${INTERPRETER_PATH}"{idle,pydoc,python,python-config} &>/dev/null && \
-	rm -f "${MAN_PATH}"python.1{,.gz,.bz2} &>/dev/null
+	rm -f "${MAN_PATH}"python.1{,.gz,.bz2,.lzma} &>/dev/null
 }
 
 # set a man page symlink
 set_man_symlink() {
 	local target="${1}" x extension
 
-	for x in ".1" ".1.bz2" ".1.gz" ; do
+	for x in ".1" ".1.bz2" ".1.gz" ".1.lzma" ; do
 		if [[ -e "${MAN_PATH}${target}${x}" ]] ; then
 			extension="${x}"
 			break
