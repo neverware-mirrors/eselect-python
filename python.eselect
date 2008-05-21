@@ -138,7 +138,18 @@ describe_update() {
 	echo "Switch to the most recent CPython."
 }
 
+describe_update_options() {
+	echo "--if-unset : Do not override existing implementation"
+}
+
 do_update() {
+	[[ -z "${1}" ]] || ( [[ -z "${2}" ]] && [[ "${1}" == "--if-unset" ]] ) || \
+		die -q "Usage error"
+
+	if [[ -L "${ROOT}/usr/bin/python" ]]; then
+		[[ ${1} == "--if-unset" ]] && return
+	fi
+
 	local targets=( $(cd "${INTERPRETER_PATH}"; ls python?.?|sort -r) ) target
 	target=${targets[0]}
 	echo "Switching to ${target}"
