@@ -139,18 +139,35 @@ describe_update() {
 }
 
 describe_update_options() {
-	echo "--if-unset : Do not override existing implementation"
+	echo "--if-unset    : Do not override existing implementation"
+	echo "--ignore SLOT : Ignore SLOT when setting symlinks"
 }
 
 do_update() {
-	[[ -z "${1}" ]] || ( [[ -z "${2}" ]] && [[ "${1}" == "--if-unset" ]] ) || \
-		die -q "Usage error"
+	local if_unset=false ignored_slot=
+	while [[ $# > 0 ]]; do
+		case $1 in
+			--if-unset)
+				if_unset=true
+				;;
+			--ignore)
+				ignored_slot=${2}
+				shift;;
+			--*)
+				die -q "Unrecognized option '$1'"
+				;;
+		esac
+		shift
+	done
 
 	if [[ -L "${ROOT}/usr/bin/python" ]]; then
-		[[ ${1} == "--if-unset" ]] && return
+		${if_unset} && return
 	fi
 
 	local targets=( $(cd "${INTERPRETER_PATH}"; ls python?.?|sort -r) ) target
+	if [[ -n "${ignored_slot}" ]]; then
+		targets=( ${targets[@]/python${ignored_slot}/} )
+	fi
 	target=${targets[0]}
 	echo "Switching to ${target}"
 	do_set ${target}
