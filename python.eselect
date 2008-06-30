@@ -67,6 +67,11 @@ set_symlinks() {
 		ln -nfs "${INTERPRETER_PATH}${target/python/python-config-}" python-config
 		ln -nfs "${INTERPRETER_PATH}${target/python/pydoc}" pydoc
 		ln -nfs "${INTERPRETER_PATH}${target/python/idle}" idle
+		# 2to3 for 2.6 and 3.0
+		if [[ -f "${INTERPRETER_PATH}${target/python/2to3-}" ]]; then
+			ln -nfs "${INTERPRETER_PATH}${target/python/2to3-}" 2to3
+		fi
+
 		popd 1>/dev/null
 	else
 		die -q "Target \"${1}\" doesn't appear to be valid!"
