@@ -144,14 +144,14 @@ describe_update_options() {
 }
 
 do_update() {
-	local if_unset=false ignored_slot=
+	local if_unset=false ignored_slots=() slot=
 	while [[ $# > 0 ]]; do
 		case $1 in
 			--if-unset)
 				if_unset=true
 				;;
 			--ignore)
-				ignored_slot=${2}
+				ignored_slots=( ${ignored_slots[@]} "${2}" )
 				shift;;
 			--*)
 				die -q "Unrecognized option '$1'"
@@ -165,9 +165,12 @@ do_update() {
 	fi
 
 	local targets=( $(cd "${INTERPRETER_PATH}"; ls python?.?|sort -r) ) target
-	if [[ -n "${ignored_slot}" ]]; then
-		targets=( ${targets[@]/python${ignored_slot}/} )
-	fi
+	
+	# Ignore slots
+	for slot in ${ignored_slots[@]}; do
+		targets=( ${targets[@]/python${slot}/} )
+	done
+
 	target=${targets[0]}
 	echo "Switching to ${target}"
 	do_set ${target}
