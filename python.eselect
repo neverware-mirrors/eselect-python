@@ -7,8 +7,8 @@ MAINTAINER="hawking@gentoo.org"
 SVN_DATE='$Date$'
 VERSION=$(svn_date_to_version "${SVN_DATE}" )
 
-INTERPRETER_PATH="${ROOT}/usr/bin/"
-MAN_PATH="${ROOT}/usr/share/man/man1/"
+INTERPRETER_PATH="${ROOT%/}/usr/bin/"
+MAN_PATH="${ROOT%/}/usr/share/man/man1/"
 
 # find a list of python versions
 find_targets() {
@@ -165,7 +165,7 @@ do_update() {
 		shift
 	done
 
-	if [[ -L "${ROOT}/usr/bin/python" ]]; then
+	if [[ -L "${ROOT%/}/usr/bin/python" ]]; then
 		${if_unset} && return
 	fi
 
