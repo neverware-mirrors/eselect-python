@@ -18,7 +18,9 @@ find_targets() {
 	# is a bash wrapper that calls java-config, which is a python
 	# script, so you need a valid /usr/bin/python to start jython.
 	for interpreter in "${INTERPRETER_PATH}"python?.?; do
-		echo ${interpreter#${INTERPRETER_PATH}}
+		if [[ -f "${interpreter}" ]]; then
+			echo ${interpreter#${INTERPRETER_PATH}}
+		fi
 	done
 }
 
@@ -81,7 +83,7 @@ set_symlinks() {
 		ln -nfs "${target/python/pydoc}" pydoc
 		ln -nfs "${target/python/idle}" idle
 		# 2to3 for >=2.6
-		if [[ -f "${INTERPRETER_PATH}${target/python/2to3-}" ]]; then
+		if [[ -f "${target/python/2to3-}" ]]; then
 			ln -nfs "${target/python/2to3-}" 2to3
 		fi
 
