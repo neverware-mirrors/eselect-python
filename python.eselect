@@ -24,6 +24,18 @@ find_targets() {
 	done
 }
 
+set_python_script() {
+	local script="${INTERPRETER_PATH}${1}" target="${2}"
+	cat << EOF > "${script}"
+#!/bin/sh
+# Gentoo Python wrapper script
+
+[[ "\${EPYTHON}" == "${script##*/}" ]] && EPYTHON="${target}"
+"\${0%/*}/\${EPYTHON:-${target}}" "\$@"
+EOF
+	chmod +x "${script}"
+}
+
 # Try to remove python and python.1 symlinks
 remove_symlinks() {
 	local symlink symlink_target symlink_target_found
@@ -62,8 +74,8 @@ set_man_symlink() {
 	popd 1>/dev/null
 }
 
-# Set python and python.1 symlinks
-set_symlinks() {
+# Set python script and appropriate symlinks
+set_scripts_and_symlinks() {
 	local target="${1}" targets=($(find_targets ))
 	if is_number "${target}" && [[ ${target} -ge 1 ]]; then
 		target=${targets[$(( ${target} - 1 ))]}
@@ -77,7 +89,7 @@ set_symlinks() {
 		set_man_symlink "${target}"
 	
 		pushd "${INTERPRETER_PATH}" 1>/dev/null
-		ln -nfs "${target}" python
+		set_python_script "python" "${target}"
 		ln -nfs "${target}" "${target%.*}"
 		ln -nfs "${target/python/python-config-}" python-config
 		ln -nfs "${target/python/pydoc}" pydoc
@@ -152,17 +164,13 @@ do_set() {
 		die -q "You didn't tell me which python interpreter to use"
 	elif [[ -n "${2}" ]]; then
 		die -q "Too many parameters"
-	elif [[ -L "${INTERPRETER_PATH}python" ]]; then
+	else
 		if ! remove_symlinks; then
 			die -q "Can't remove existing provider"
-		elif ! set_symlinks "${1}"; then
+		elif ! set_scripts_and_symlinks "${1}"; then
 			die -q "Can't set new provider"
 		fi
 		set_python_docs "${1}"
-	elif [[ -e "${INTERPRETER_PATH}python" ]]; then
-		die -q "Sorry, ${INTERPRETER_PATH}python is not a symlink"
-	else
-		set_symlinks "${1}" || die -q "Can't set a new provider"
 	fi
 }
 
