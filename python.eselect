@@ -30,8 +30,21 @@ set_python_script() {
 #!/bin/sh
 # Gentoo Python wrapper script
 
-[[ "\${EPYTHON}" == "${script##*/}" ]] && EPYTHON="${target}"
+[[ "\${EPYTHON}" =~ (/|^python\$) ]] && EPYTHON="${target}"
 "\${0%/*}/\${EPYTHON:-${target}}" "\$@"
+EOF
+	chmod +x "${script}"
+}
+
+set_python_config_script() {
+	local script="${INTERPRETER_PATH}${1}" target="${2}"
+	cat << EOF > "${script}"
+#!/bin/sh
+# Gentoo python-config wrapper script
+
+[[ "\${EPYTHON}" =~ (/|^python\$) ]] && EPYTHON="${target/-config-/}"
+python_config="\${EPYTHON/python/python-config-}"
+"\${0%/*}/\${python_config:-${target}}" "\$@"
 EOF
 	chmod +x "${script}"
 }
@@ -91,7 +104,7 @@ set_scripts_and_symlinks() {
 		pushd "${INTERPRETER_PATH}" 1>/dev/null
 		set_python_script "python" "${target}"
 		ln -nfs "${target}" "${target%.*}"
-		ln -nfs "${target/python/python-config-}" python-config
+		set_python_config_script "python-config" "${target/python/python-config-}"
 		ln -nfs "${target/python/pydoc}" pydoc
 		ln -nfs "${target/python/idle}" idle
 		# 2to3 for >=2.6
