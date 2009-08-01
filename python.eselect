@@ -27,7 +27,7 @@ find_targets() {
 set_python_script() {
 	local script="${INTERPRETER_PATH}${1}" target="${2}"
 	cat << EOF > "${script}"
-#!/bin/sh
+#!/bin/bash
 # Gentoo Python wrapper script
 
 [[ "\${EPYTHON}" =~ (/|^python\$) ]] && EPYTHON="${target}"
@@ -39,7 +39,7 @@ EOF
 set_python_config_script() {
 	local script="${INTERPRETER_PATH}${1}" target="${2}"
 	cat << EOF > "${script}"
-#!/bin/sh
+#!/bin/bash
 # Gentoo python-config wrapper script
 
 [[ "\${EPYTHON}" =~ (/|^python\$) ]] && EPYTHON="${target/-config-/}"
