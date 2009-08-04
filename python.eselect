@@ -25,7 +25,8 @@ find_targets() {
 }
 
 set_python() {
-	local program="${INTERPRETER_PATH}python" target="${1}"
+	local symlink="${INTERPRETER_PATH}python" target="${1}"
+	ln -s python-wrapper "${symlink}"
 	echo "${target}" > "${ENV_D_PATH}/python/config"
 }
 
@@ -45,7 +46,7 @@ EOF
 # Try to remove python and python.1 symlinks
 remove_symlinks() {
 	local symlink symlink_target symlink_target_found
-	rm -f "${INTERPRETER_PATH}"{idle,pydoc,python-config} &>/dev/null && \
+	rm -f "${INTERPRETER_PATH}"{idle,pydoc,python,python-config} &>/dev/null && \
 	rm -f "${MAN_PATH}"python.1{,.gz,.bz2,.lzma,.xz} &>/dev/null
 	for symlink in "${INTERPRETER_PATH}python"?; do
 		[[ ! -L "${symlink}" ]] && continue
