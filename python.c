@@ -14,6 +14,8 @@
 /* 127 is the standard return code for "command not found" */
 #define EXIT_ERROR 127
 
+const char* program_description = "Gentoo Python wrapper program";
+
 char* dir_cat(const char* dir, const char* file)
 {
 	size_t dir_len = strlen(dir);
@@ -160,6 +162,9 @@ const char* find_latest(const char* exe)
 
 int main(int argc, char** argv)
 {
+	if (strlen(program_description) == 0)
+		abort();
+
 	const char* EPYTHON = getenv("EPYTHON");
 	if (! valid_interpreter(EPYTHON))
 	{
