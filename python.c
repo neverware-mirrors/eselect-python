@@ -34,7 +34,7 @@ const char* find_path(const char* exe)
 		return strndup(exe, last_slash - exe);
 	}
 	char* path = strdup(getenv("PATH"));
-	char* state;
+	char* state = NULL;
 	const char* token = strtok_r(path, ":", &state);
 	while (token)
 	{
@@ -135,8 +135,6 @@ int sort_python(const struct dirent**f1, const struct dirent** f2)
 
 const char* find_latest(const char* exe)
 {
-	int major = -1;
-	int minor = -1;
 	const char* path = find_path(exe);
 	if (! path || ! *path)
 	{
@@ -160,7 +158,7 @@ const char* find_latest(const char* exe)
 	return ret;
 }
 
-int main(int argc, char** argv)
+int main(__attribute__((unused)) int argc, char** argv)
 {
 	if (strlen(program_description) == 0)
 		abort();
@@ -175,7 +173,7 @@ int main(int argc, char** argv)
 			fstat(fileno(f), &st);
 			size_t size = st.st_size;
 			char* cont = malloc(size + 1);
-			fgets(cont, size + 1, f);
+			cont = fgets(cont, size + 1, f);
 			fclose(f);
 			size_t len = strlen(cont);
 			if (len && cont[len - 1] == '\n')
