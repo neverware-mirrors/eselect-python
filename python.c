@@ -33,7 +33,15 @@ const char* find_path(const char* exe)
 	{
 		return strndup(exe, last_slash - exe);
 	}
-	char* path = strdup(getenv("PATH"));
+	const char* PATH = getenv("PATH");
+	if (! PATH)
+	{
+		/* If PATH is unset, then it defaults to ":/bin:/usr/bin", per
+		 * execvp(3).
+		 */
+		PATH = ":/bin:/usr/bin";
+	}
+	char* path = strdup(PATH);
 	char* state = NULL;
 	const char* token = strtok_r(path, ":", &state);
 	while (token)
