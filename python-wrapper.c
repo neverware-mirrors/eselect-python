@@ -14,7 +14,7 @@
 /* 127 is the standard return code for "command not found" */
 #define EXIT_ERROR 127
 
-const char* program_description = "Gentoo Python wrapper program";
+const char program_description[] = "Gentoo Python wrapper program";
 
 char* dir_cat(const char* dir, const char* file)
 {
@@ -50,15 +50,6 @@ const char* find_path(const char* exe)
 		if (! *token)
 		{
 			token = ".";
-		}
-		/* If it starts with "~/", use "${HOME}/" instead */
-		if (strncmp(token, "~/", 2) == 0)
-		{
-			char* home = getenv("HOME");
-			char* new_token = malloc(strlen(token) + strlen(home));
-			strcpy(new_token, home);
-			strcat(new_token, token + 1);
-			token = new_token;
 		}
 		struct stat sbuf;
 		char* str = dir_cat(token, exe);
