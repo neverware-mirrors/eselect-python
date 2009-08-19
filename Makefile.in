@@ -1,0 +1,10 @@
+CC = @CC@
+WARNINGS_FLAGS = -Wall -Wextra
+
+all: python-wrapper
+
+python-wrapper: config.h python-wrapper.c
+	$(CC) $(CPPFLAGS) $(CFLAGS) $(WARNINGS_FLAGS) $(ASFLAGS) $(LDFLAGS) -o $@ $<
+
+clean:
+	rm -fr config.h config.h.in config.log config.status configure Makefile python-wrapper
