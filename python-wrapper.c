@@ -9,6 +9,8 @@
 #include <unistd.h>
 #include <sys/stat.h>
 
+#include "config.h"
+
 #define ENVD_CONFIG "/etc/env.d/python/config"
 
 /* 127 is the standard return code for "command not found" */
@@ -31,7 +33,15 @@ const char* find_path(const char* exe)
 	const char* last_slash = strrchr(exe, '/');
 	if (last_slash)
 	{
+#ifdef HAVE_STRNDUP
 		return strndup(exe, last_slash - exe);
+#else
+		size_t len = last_slash - exe;
+		char* ret = malloc(sizeof(char) * (len + 1));
+		memcpy(ret, exe, len);
+		ret[len] = '\0';
+		return(ret);
+#endif
 	}
 	const char* PATH = getenv("PATH");
 	if (! PATH)
