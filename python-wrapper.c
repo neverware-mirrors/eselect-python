@@ -207,7 +207,7 @@ int main(__attribute__((unused)) int argc, char** argv)
 	if (*path)
 	{
 		execv(dir_cat(path, EPYTHON), argv);
-		return EXIT_ERROR;
+		/* If this failed, then just search the PATH. */
 	}
 
 	execvp(EPYTHON, argv);
