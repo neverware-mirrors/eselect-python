@@ -1,13 +1,18 @@
 CC = @CC@
+CPPFLAGS = @CPPFLAGS@
+CFLAGS = @CFLAGS@
 WARNINGS_FLAGS = -Wall -Wextra
+ASFLAGS = @ASFLAGS@
+LDFLAGS = @LDFLAGS@
+EXEEXT = @EXEEXT@
 
-all: python-wrapper
+all: python-wrapper$(EXEEXT)
 
-python-wrapper: config.h python-wrapper.c
+python-wrapper$(EXEEXT): config.h python-wrapper.c
 	$(CC) $(CPPFLAGS) $(CFLAGS) $(WARNINGS_FLAGS) $(ASFLAGS) $(LDFLAGS) -o $@ python-wrapper.c
 
 clean:
-	rm -fr python-wrapper
+	rm -fr python-wrapper$(EXEEXT)
 
 distclean: clean
 	rm -fr config.h config.log config.status Makefile
