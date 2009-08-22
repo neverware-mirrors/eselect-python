@@ -199,6 +199,7 @@ int main(__attribute__((unused)) int argc, char** argv)
 
 	if (strchr(EPYTHON, '/'))
 	{
+		argv[0] = (char*) EPYTHON;
 		execv(EPYTHON, argv);
 		return EXIT_ERROR;
 	}
@@ -206,10 +207,12 @@ int main(__attribute__((unused)) int argc, char** argv)
 	const char* path = find_path(argv[0]);
 	if (*path)
 	{
-		execv(dir_cat(path, EPYTHON), argv);
+		argv[0] = dir_cat(path, EPYTHON);
+		execv(argv[0], argv);
 		/* If this failed, then just search the PATH. */
 	}
 
+	argv[0] = (char*) EPYTHON;
 	execvp(EPYTHON, argv);
 	return EXIT_ERROR;
 }
