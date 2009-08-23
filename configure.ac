@@ -4,11 +4,14 @@ CFLAGS="${CFLAGS--march=native -O3 -pipe -fno-ident}"
 LDFLAGS="${LDFLAGS--Wl,-O1,--as-needed,--gc-sections,--hash-style=gnu}"
 
 AC_PROG_CC
+AC_PATH_PROG(INSTALL, install)
+MKDIR="${MKDIR:-${INSTALL} -d}"
 
 # strndup() was introduced in POSIX.1-2008.
 AC_CHECK_FUNCS([strndup])
 
 AC_SUBST([ASFLAGS])
+AC_SUBST([MKDIR])
 
 # Create output files.
 AC_CONFIG_HEADERS([config.h])
