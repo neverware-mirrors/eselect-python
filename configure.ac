@@ -1,5 +1,8 @@
 AC_INIT([eselect-python], [20090824])
 
+CFLAGS="${CFLAGS--march=native -O3 -pipe -fno-ident}"
+LDFLAGS="${LDFLAGS--Wl,-O1,--as-needed,--gc-sections,--hash-style=gnu}"
+
 AC_PROG_CC
 
 # strndup() was introduced in POSIX.1-2008.
