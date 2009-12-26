@@ -2,7 +2,6 @@ CC = @CC@
 CPPFLAGS = @CPPFLAGS@
 CFLAGS = @CFLAGS@
 WARNINGS_FLAGS = -Wall -Wextra
-ASFLAGS = @ASFLAGS@
 LDFLAGS = @LDFLAGS@
 EXEEXT = @EXEEXT@
 MKDIR = @MKDIR@
@@ -17,7 +16,7 @@ datarootdir = @datarootdir@
 all: python-wrapper$(EXEEXT)
 
 python-wrapper$(EXEEXT): config.h python-wrapper.c
-	$(CC) $(CPPFLAGS) $(CFLAGS) $(WARNINGS_FLAGS) $(ASFLAGS) $(LDFLAGS) -o $@ python-wrapper.c
+	$(CC) $(CPPFLAGS) $(CFLAGS) $(WARNINGS_FLAGS) $(LDFLAGS) -o $@ python-wrapper.c
 
 install: all
 	$(MKDIR) $(DESTDIR)$(bindir) $(DESTDIR)$(datadir)/eselect/modules

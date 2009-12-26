@@ -28,7 +28,6 @@ else
 fi
 CFLAGS="${old_CFLAGS}"
 
-AC_SUBST([ASFLAGS])
 AC_SUBST([MKDIR])
 
 # Create output files.
