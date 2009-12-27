@@ -152,14 +152,18 @@ describe_show() {
 }
 
 describe_show_options() {
+	echo "--ABI         : Show Python ABI in format of PYTHON_ABI variable"
 	echo "--python2     : Show active Python 2 interpreter"
 	echo "--python3     : Show active Python 3 interpreter"
 }
 
 do_show() {
-	local python2="0" python3="0"
+	local ABI="0" interpreter python2="0" python3="0"
 	while [[ $# > 0 ]]; do
 		case "$1" in
+			--ABI)
+				ABI="1"
+				;;
 			--python2)
 				python2="1"
 				;;
@@ -178,11 +182,17 @@ do_show() {
 	fi
 
 	if [[ "${python2}" == "1" ]]; then
-		readlink "${INTERPRETER_PATH}python2"
+		interpreter="$(readlink "${INTERPRETER_PATH}python2")"
 	elif [[ "${python3}" == "1" ]]; then
-		readlink "${INTERPRETER_PATH}python3"
+		interpreter="$(readlink "${INTERPRETER_PATH}python3")"
 	elif [[ -f "${ENV_D_PATH}/python/config" ]]; then
-		cat "${ENV_D_PATH}/python/config"
+		interpreter="$(<"${ENV_D_PATH}/python/config")"
+	fi
+
+	if [[ "${ABI}" == "1" ]]; then
+		echo "${interpreter#python}"
+	else
+		echo "${interpreter}"
 	fi
 }
 
