@@ -2,7 +2,7 @@
 # Distributed under the terms of the GNU General Public License v2
 # $Id: $
 
-DESCRIPTION="Manage the /usr/bin/python and python.1 man symlinks."
+DESCRIPTION="Manage Python symlinks"
 MAINTAINER="python@gentoo.org"
 SVN_DATE='$Date$'
 VERSION=$(svn_date_to_version "${SVN_DATE}" )
@@ -13,7 +13,7 @@ MAN_PATH="${ROOT%/}/usr/share/man/man1/"
 
 PYTHON_INTERPRETERS_GROUP=""
 
-# Find a list of python versions
+# Find a list of Python versions
 find_targets() {
 	local interpreter interpreters="python?.?"
 
@@ -24,7 +24,7 @@ find_targets() {
 	fi
 
 	# Think twice before adding jython to this list. /usr/bin/jython
-	# is a bash wrapper that calls java-config, which is a python
+	# is a bash wrapper that calls java-config, which is a Python
 	# script, so you need a valid /usr/bin/python to start jython.
 	for interpreter in "${INTERPRETER_PATH}"${interpreters}; do
 		if [[ -f "${interpreter}" ]]; then
