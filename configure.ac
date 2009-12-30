@@ -1,4 +1,4 @@
-AC_INIT([eselect-python], [20090824])
+AC_INIT([eselect-python], [20091230])
 
 CFLAGS="${CFLAGS--march=native -O3 -pipe -fno-ident}"
 LDFLAGS="${LDFLAGS--Wl,-O1,--as-needed,--gc-sections,--hash-style=gnu}"
