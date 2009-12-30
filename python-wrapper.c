@@ -16,8 +16,6 @@
 /* 127 is the standard return code for "command not found" */
 #define EXIT_ERROR 127
 
-const char program_description[] = "Gentoo Python wrapper program";
-
 char* dir_cat(const char* dir, const char* file)
 {
 	size_t dir_len = strlen(dir);
@@ -156,7 +154,7 @@ const char* find_latest(const char* exe)
 	{
 		return NULL;
 	}
-	/* walk backwards through the list */
+	/* Walk backwards through the list. */
 	while (n--)
 	{
 		if (! ret)
@@ -169,9 +167,6 @@ const char* find_latest(const char* exe)
 
 int main(__attribute__((unused)) int argc, char** argv)
 {
-	if (strlen(program_description) == 0)
-		abort();
-
 	const char* EPYTHON = getenv("EPYTHON");
 	if (! valid_interpreter(EPYTHON))
 	{
@@ -199,13 +194,12 @@ int main(__attribute__((unused)) int argc, char** argv)
 
 	if (strchr(EPYTHON, '/'))
 	{
-		argv[0] = (char*) EPYTHON;
-		execv(EPYTHON, argv);
+		fprintf(stderr, "Invalid value of EPYTHON variable or invalid configuration of Python wrapper\n");
 		return EXIT_ERROR;
 	}
 
 	const char* path = find_path(argv[0]);
-	if (*path)
+	if (path)
 	{
 		argv[0] = dir_cat(path, EPYTHON);
 		execv(argv[0], argv);
