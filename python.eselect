@@ -190,9 +190,13 @@ do_show() {
 	fi
 
 	if [[ "${ABI}" == "1" ]]; then
-		echo "${interpreter#python}"
+		echo -n "${interpreter#python}"
 	else
-		echo "${interpreter}"
+		echo -n "${interpreter}"
+	fi
+
+	if [[ -n "${interpreter}" ]]; then
+		echo
 	fi
 }
 
