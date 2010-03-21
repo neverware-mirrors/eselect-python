@@ -7,9 +7,9 @@ MAINTAINER="python@gentoo.org"
 SVN_DATE='$Date$'
 VERSION=$(svn_date_to_version "${SVN_DATE}" )
 
-ENV_D_PATH="${ROOT%/}/etc/env.d"
-INTERPRETER_PATH="${ROOT%/}/usr/bin/"
-MAN_PATH="${ROOT%/}/usr/share/man/man1/"
+ENV_D_PATH="${EROOT%/}/etc/env.d"
+INTERPRETER_PATH="${EROOT%/}/usr/bin/"
+MAN_PATH="${EROOT%/}/usr/share/man/man1/"
 
 PYTHON_INTERPRETERS_GROUP=""
 
@@ -42,7 +42,7 @@ set_python() {
 set_python_config() {
 	local script="${INTERPRETER_PATH}python-config" target="${1}"
 	cat << EOF > "${script}"
-#!/bin/bash
+#!/usr/bin/env bash
 # Gentoo python-config wrapper script
 
 [[ "\${EPYTHON}" =~ (/|^python\$) ]] && EPYTHON="${target/-config-/}"
