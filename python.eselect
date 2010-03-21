@@ -1,4 +1,4 @@
-# Copyright 1999-2009 Gentoo Foundation
+# Copyright 1999-2010 Gentoo Foundation
 # Distributed under the terms of the GNU General Public License v2
 # $Id: $
 
@@ -119,7 +119,10 @@ set_scripts_and_symlinks() {
 			set_python "${target}"
 			set_python_config "${target/python/python-config-}"
 			ln -nfs "${target/python/pydoc}" pydoc
-			ln -nfs "${target/python/idle}" idle
+			# idle is optionally installed
+			if [[ -f "${target/python/idle}" ]]; then
+				ln -nfs "${target/python/idle}" idle
+			fi
 			# 2to3 for >=2.6
 			if [[ -f "${target/python/2to3-}" ]]; then
 				ln -nfs "${target/python/2to3-}" 2to3
