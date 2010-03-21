@@ -50,8 +50,12 @@ const char* find_path(const char* exe)
 		PATH = ":/bin:/usr/bin";
 	}
 	char* path = strdup(PATH);
+#ifdef HAVE_STRTOK_R
 	char* state = NULL;
 	const char* token = strtok_r(path, ":", &state);
+#else
+	const char* token = strtok(path, ":");
+#endif
 	while (token)
 	{
 		/* If an element of PATH is empty ("::"), then it is "." */
@@ -65,7 +69,11 @@ const char* find_path(const char* exe)
 		{
 			return token;
 		}
+#ifdef HAVE_STRTOK_R
 		token = strtok_r(NULL, ":", &state);
+#else
+		token = strtok(NULL, ":");
+#endif
 	}
 	return NULL;
 }

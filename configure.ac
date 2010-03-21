@@ -10,7 +10,8 @@ MKDIR="${MKDIR:-${INSTALL} -d}"
 AC_USE_SYSTEM_EXTENSIONS
 
 # setenv() was introduced in POSIX.1-2008.
-AC_CHECK_FUNCS([setenv])
+# strtok_r() was introduced in POSIX.1-2001.
+AC_CHECK_FUNCS([setenv strtok_r])
 
 # strndup() was introduced in POSIX.1-2008 and is also an implicitly declared built-in function in GCC.
 AC_MSG_CHECKING([for strndup])
