@@ -49,7 +49,7 @@ set_python_config() {
 python_config="\${EPYTHON/python/python-config-}"
 "\${0%/*}/\${python_config:-${target}}" "\$@"
 EOF
-	chmod +x "${script}"
+	chmod a+rx "${script}"
 }
 
 # Try to remove python and python.1 symlinks
