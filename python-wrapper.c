@@ -1,4 +1,4 @@
-/* Copyright 1999-2009 Gentoo Foundation
+/* Copyright 1999-2010 Gentoo Foundation
  * Distributed under the terms of the GNU General Public License v2
  */
 #include <dirent.h>
@@ -165,9 +165,10 @@ const char* find_latest(const char* exe)
 	return ret;
 }
 
-int main(__attribute__((unused)) int argc, char** argv)
+int main(int argc, char** argv)
 {
 	const char* EPYTHON = getenv("EPYTHON");
+	int script_name_index = -1;
 	if (! valid_interpreter(EPYTHON))
 	{
 		FILE* f = fopen(ENVD_CONFIG, "r");
@@ -196,6 +197,24 @@ int main(__attribute__((unused)) int argc, char** argv)
 	{
 		fprintf(stderr, "Invalid value of EPYTHON variable or invalid configuration of Python wrapper\n");
 		return EXIT_ERROR;
+	}
+
+	/* Set GENTOO_PYTHON_PROCESS_NAME environmental variable, if a script with a Python shebang is probably being executed.
+	 * argv[0] can be "python", when "#!/usr/bin/env python" shebang is used. */
+	if (argc >= 2 && (argv[0][0] == '/' || strcmp(argv[0], "python") == 0) && (argv[1][0] == '/' || strncmp(argv[1], "./", 2) == 0))
+		script_name_index = 1;
+	else if (argc >= 3 && argv[0][0] == '/' && argv[1][0] == '-' && (argv[2][0] == '/' || strncmp(argv[2], "./", 2) == 0))
+		script_name_index = 2;
+	if (script_name_index > 0)
+	{
+		char* script_name = strrchr(argv[script_name_index], '/') + 1;
+#ifdef HAVE_SETENV
+		setenv("GENTOO_PYTHON_PROCESS_NAME", script_name, 1);
+#else
+		char* script_name_variable = malloc(sizeof(char) * (strlen("GENTOO_PYTHON_PROCESS_NAME=") + strlen(script_name)));
+		sprintf(script_name_variable, "GENTOO_PYTHON_PROCESS_NAME=%s", script_name);
+		putenv(script_name_variable);
+#endif
 	}
 
 	const char* path = find_path(argv[0]);

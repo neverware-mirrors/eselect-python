@@ -1,4 +1,4 @@
-AC_INIT([eselect-python], [20091230])
+AC_INIT([eselect-python], [20100321])
 
 CFLAGS="${CFLAGS--march=native -O3 -pipe -fno-ident}"
 LDFLAGS="${LDFLAGS--Wl,-O1,--as-needed,--gc-sections,--hash-style=gnu}"
@@ -9,7 +9,10 @@ MKDIR="${MKDIR:-${INSTALL} -d}"
 
 AC_USE_SYSTEM_EXTENSIONS
 
-# strndup() was introduced in POSIX.1-2008.
+# setenv() was introduced in POSIX.1-2008.
+AC_CHECK_FUNCS([setenv])
+
+# strndup() was introduced in POSIX.1-2008 and is also an implicitly declared built-in function in GCC.
 AC_MSG_CHECKING([for strndup])
 old_CFLAGS="${CFLAGS}"
 CFLAGS="${CFLAGS} -Wall -Werror -Wextra"
