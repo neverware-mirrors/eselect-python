@@ -56,8 +56,8 @@ EOF
 remove_symlinks() {
 	local symlink symlink_target symlink_target_found
 	if [[ "${SET_MAIN_ACTIVE_PYTHON_INTERPRETER}" == "1" ]]; then
-		rm -f "${INTERPRETER_PATH}"{idle,pydoc,python,python-config,pythonw} &>/dev/null || return 1
-		rm -f "${MAN_PATH}"python.1{,.gz,.bz2,.lzma,.xz} &>/dev/null || return 1
+		rm -f "${INTERPRETER_PATH}"{idle,pydoc,python,python-config,pythonw} &> /dev/null || return 1
+		rm -f "${MAN_PATH}"python.1{,.gz,.bz2,.lzma,.xz} &> /dev/null || return 1
 	fi
 
 	for symlink in "${INTERPRETER_PATH}python"?; do
@@ -91,9 +91,9 @@ set_man_symlink() {
 		return 1
 	fi
 
-	pushd "${MAN_PATH}" 1>/dev/null
+	pushd "${MAN_PATH}" 1> /dev/null
 	ln -nfs "${target}${extension}" "python${extension}"
-	popd 1>/dev/null
+	popd 1> /dev/null
 }
 
 # Set python-config script and appropriate symlinks
@@ -115,7 +115,7 @@ set_scripts_and_symlinks() {
 			set_man_symlink "${target}"
 		fi
 
-		pushd "${INTERPRETER_PATH}" 1>/dev/null
+		pushd "${INTERPRETER_PATH}" 1> /dev/null
 
 		ln -nfs "${target}" "${target%.*}"
 		if [[ "${SET_MAIN_ACTIVE_PYTHON_INTERPRETER}" == "1" ]]; then
@@ -140,15 +140,15 @@ set_scripts_and_symlinks() {
 			local framework_dir="${INTERPRETER_PATH%/bin/}/lib/Python.framework"
 			if [[ -d "${framework_dir}" ]]; then
 				local version="${target#python}"
-				pushd "${framework_dir}" 1>/dev/null
+				pushd "${framework_dir}" 1> /dev/null
 				ln -nfs "Versions/${version}/Headers"
 				ln -nfs "Versions/${version}/Python"
 				ln -nfs "Versions/${version}/Resources"
-				popd 1>/dev/null
+				popd 1> /dev/null
 			fi
 		fi
 
-		popd 1>/dev/null
+		popd 1> /dev/null
 	else
 		die -q "Target \"${1}\" doesn't appear to be valid!"
 	fi
@@ -392,16 +392,20 @@ do_update() {
 		interpreters="python3.?"
 	fi
 
-	targets=($(cd "${INTERPRETER_PATH}"; ls ${interpreters} | sort -r))
+	targets=($(cd "${INTERPRETER_PATH}"; ls ${interpreters} 2> /dev/null | sort -r))
 
 	# Ignore slots
 	for slot in ${ignored_slots[@]}; do
 		targets=(${targets[@]/python${slot}/})
 	done
 
-	target=${targets[0]}
-	echo "Switching to ${target}"
-	do_set ${python_version_option} ${target}
+	if [[ ${#targets[@]} -gt 0 ]]; then
+		target=${targets[0]}
+		echo "Switching to ${target}"
+		do_set ${python_version_option} ${target}
+	else
+		die -q "No Python interpreter available"
+	fi
 }
 
 # vim: set ft=eselect :
