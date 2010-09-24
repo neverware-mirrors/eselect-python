@@ -17,13 +17,12 @@ AC_CHECK_FUNCS([setenv strtok_r])
 AC_MSG_CHECKING([for strndup])
 old_CFLAGS="${CFLAGS}"
 CFLAGS="${CFLAGS} -Wall -Werror -Wextra"
-AC_LINK_IFELSE(
-[#include <string.h>
+AC_LINK_IFELSE([AC_LANG_SOURCE([[#include <string.h>
 int main()
 {
   strndup("", 0);
   return 0;
-}], [have_strndup="1"], [have_strndup="0"])
+}]])], [have_strndup="1"], [have_strndup="0"])
 if test "${have_strndup}" = "1"; then
   AC_MSG_RESULT([yes])
   AC_DEFINE([HAVE_STRNDUP], [1], [Define to 1 if you have the 'strndup' function.])
