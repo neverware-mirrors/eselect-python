@@ -1,6 +1,9 @@
 /* Copyright 1999-2010 Gentoo Foundation
  * Distributed under the terms of the GNU General Public License v2
  */
+
+#include "config.h"
+
 #include <dirent.h>
 #include <limits.h>
 #include <stdlib.h>
@@ -8,8 +11,6 @@
 #include <string.h>
 #include <unistd.h>
 #include <sys/stat.h>
-
-#include "config.h"
 
 #define ENVD_CONFIG "/etc/env.d/python/config"
 
