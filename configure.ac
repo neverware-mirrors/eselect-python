@@ -1,11 +1,9 @@
-AC_INIT([eselect-python], [20100321])
-
-CFLAGS="${CFLAGS--march=native -O3 -pipe -fno-ident}"
-LDFLAGS="${LDFLAGS--Wl,-O1,--as-needed,--gc-sections,--hash-style=gnu}"
+AC_INIT([eselect-python], [20111108])
+AM_INIT_AUTOMAKE([-Wall foreign no-dist-gzip dist-bzip2])
 
 AC_PROG_CC
 AC_PATH_PROG(INSTALL, install)
-MKDIR="${MKDIR:-${INSTALL} -d}"
+AC_PROG_MKDIR_P
 
 AC_USE_SYSTEM_EXTENSIONS
 
@@ -30,8 +28,6 @@ else
   AC_MSG_RESULT([no])
 fi
 CFLAGS="${old_CFLAGS}"
-
-AC_SUBST([MKDIR])
 
 # Create output files.
 AC_CONFIG_HEADERS([config.h])
