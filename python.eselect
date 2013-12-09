@@ -36,6 +36,7 @@ find_targets() {
 set_python() {
 	local symlink="${INTERPRETER_PATH}python" target="${1}"
 	ln -s python-wrapper "${symlink}"
+	mkdir -p "${ENV_D_PATH}/python"
 	echo "${target}" > "${ENV_D_PATH}/python/config"
 }
 
