@@ -1,4 +1,4 @@
-# Copyright 1999-2010 Gentoo Foundation
+# Copyright 1999-2014 Gentoo Foundation
 # Distributed under the terms of the GNU General Public License v2
 # $Id: $
 
@@ -15,12 +15,12 @@ PYTHON_INTERPRETERS_GROUP=""
 
 # Find a list of Python versions
 find_targets() {
-	local interpreter interpreters="python?.?"
+	local interpreter interpreters="python?.?@EXEEXT@"
 
 	if [[ "${PYTHON_INTERPRETERS_GROUP}" == "2" ]]; then
-		interpreters="python2.?"
+		interpreters="python2.?@EXEEXT@"
 	elif [[ "${PYTHON_INTERPRETERS_GROUP}" == "3" ]]; then
-		interpreters="python3.?"
+		interpreters="python3.?@EXEEXT@"
 	fi
 
 	# Think twice before adding jython to this list. /usr/bin/jython
@@ -349,7 +349,7 @@ describe_update_options() {
 }
 
 do_update() {
-	local if_unset="0" ignored_slots=() interpreters="python?.?" python2="0" python3="0" python_version_option= slot= target targets=()
+	local if_unset="0" ignored_slots=() interpreters="python?.?@EXEEXT@" python2="0" python3="0" python_version_option= slot= target targets=()
 	while [[ $# > 0 ]]; do
 		case "$1" in
 			--if-unset)
@@ -388,9 +388,9 @@ do_update() {
 	fi
 
 	if [[ "${python2}" == "1" ]]; then
-		interpreters="python2.?"
+		interpreters="python2.?@EXEEXT@"
 	elif [[ "${python3}" == "1" ]]; then
-		interpreters="python3.?"
+		interpreters="python3.?@EXEEXT@"
 	fi
 
 	targets=($(cd "${INTERPRETER_PATH}"; ls ${interpreters} 2> /dev/null | sort -r))

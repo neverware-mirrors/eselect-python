@@ -1,4 +1,4 @@
-AC_INIT([eselect-python], [20131210])
+AC_INIT([eselect-python], [20140115])
 AM_INIT_AUTOMAKE([-Wall foreign no-dist-gzip dist-bzip2])
 
 AC_PROG_CC
@@ -31,6 +31,6 @@ CFLAGS="${old_CFLAGS}"
 
 # Create output files.
 AC_CONFIG_HEADERS([config.h])
-AC_CONFIG_FILES([Makefile])
+AC_CONFIG_FILES([Makefile python.eselect])
 
 AC_OUTPUT
