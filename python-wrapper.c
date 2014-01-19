@@ -12,7 +12,11 @@
 #include <unistd.h>
 #include <sys/stat.h>
 
-#define ENVD_CONFIG "/etc/env.d/python/config"
+#ifndef ENVD
+#define ENVD "/etc/env.d"
+#endif
+
+#define ENVD_CONFIG ENVD "/python/config"
 
 /* 127 is the standard return code for "command not found" */
 #define EXIT_ERROR 127
