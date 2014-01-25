@@ -1,4 +1,4 @@
-AC_INIT([eselect-python], [20140115])
+AC_INIT([eselect-python], [20140125])
 AM_INIT_AUTOMAKE([-Wall foreign no-dist-gzip dist-bzip2])
 
 AC_PROG_CC
