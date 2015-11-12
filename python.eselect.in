@@ -33,6 +33,13 @@ find_targets() {
 	done
 }
 
+set_python_subver() {
+	local target=${1}
+	local subver=${target%.*}
+	mkdir -p "${ENV_D_PATH}/python"
+	echo "${target}" > "${ENV_D_PATH}/python/${subver}"
+}
+
 set_python() {
 	local symlink="${INTERPRETER_PATH}python" target="${1}"
 	ln -s python-wrapper "${symlink}"
@@ -119,6 +126,7 @@ set_scripts_and_symlinks() {
 		pushd "${INTERPRETER_PATH}" 1> /dev/null
 
 		ln -nfs "${target}" "${target%.*}"
+		set_python_subver "${target}"
 		if [[ "${SET_MAIN_ACTIVE_PYTHON_INTERPRETER}" == "1" ]]; then
 			set_python "${target}"
 			set_python_config "${target/python/python-config-}"
@@ -205,9 +213,9 @@ do_show() {
 	fi
 
 	if [[ "${python2}" == "1" ]]; then
-		interpreter="$(readlink "${INTERPRETER_PATH}python2")"
+		interpreter="$(<"${ENV_D_PATH}/python/python2")"
 	elif [[ "${python3}" == "1" ]]; then
-		interpreter="$(readlink "${INTERPRETER_PATH}python3")"
+		interpreter="$(<"${ENV_D_PATH}/python/python3")"
 	elif [[ -f "${ENV_D_PATH}/python/config" ]]; then
 		interpreter="$(<"${ENV_D_PATH}/python/config")"
 	fi
