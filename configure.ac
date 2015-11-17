@@ -1,4 +1,4 @@
-AC_INIT([eselect-python], [20140125])
+AC_INIT([eselect-python], [20151117])
 AM_INIT_AUTOMAKE([-Wall foreign no-dist-gzip dist-bzip2])
 
 # note: we need AC_PROG_CC to determine EXEEXT (AC_EXEEXT does not work)
