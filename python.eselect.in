@@ -1,163 +1,200 @@
-# Copyright 1999-2014 Gentoo Foundation
+# Copyright 1999-2016 Gentoo Foundation
 # Distributed under the terms of the GNU General Public License v2
 # $Id: $
 
-DESCRIPTION="Manage active Python interpreter"
+DESCRIPTION="Manage Python interpreter preferences"
 MAINTAINER="python@gentoo.org"
-SVN_DATE='$Date$'
-VERSION=$(svn_date_to_version "${SVN_DATE}" )
+VERSION=@VERSION@
 
+CONFIG_PATH="${EROOT%/}/etc/python-exec/python-exec.conf"
 ENV_D_PATH="${EROOT%/}/etc/env.d"
-INTERPRETER_PATH="${EROOT%/}/usr/bin/"
-MAN_PATH="${EROOT%/}/usr/share/man/man1/"
+INTERPRETER_DIR="${EROOT%/}/usr/bin"
+MAN_PATH="${EROOT%/}/usr/share/man/man1"
 
-PYTHON_INTERPRETERS_GROUP=""
+# Get list of all installed Python interpreters, in lexical order.
+# $1 can be --pyN to filter results to pythonN.?.
+get_installed_pythons() {
+	local exes=( "${INTERPRETER_DIR}"/python?.?@EXEEXT@ )
+	local i
+	for (( i = ${#exes[@]}-1; i >= 0; --i )); do
+		local exe=${exes[i]}
+		[[ -x ${exe} ]] || continue
+		exe=${exe##*/}
+		exe=${exe%@EXEEXT@}
+		# apply filters
+		[[ ${1} == --py? && ${exe} != python${1:4}* ]] && continue
 
-# Find a list of Python versions
-find_targets() {
-	local interpreter interpreters="python?.?@EXEEXT@"
-
-	if [[ "${PYTHON_INTERPRETERS_GROUP}" == "2" ]]; then
-		interpreters="python2.?@EXEEXT@"
-	elif [[ "${PYTHON_INTERPRETERS_GROUP}" == "3" ]]; then
-		interpreters="python3.?@EXEEXT@"
-	fi
-
-	# Think twice before adding jython to this list. /usr/bin/jython
-	# is a bash wrapper that calls java-config, which is a Python
-	# script, so you need a valid /usr/bin/python to start jython.
-	for interpreter in "${INTERPRETER_PATH}"${interpreters}; do
-		if [[ -f "${interpreter}" ]]; then
-			echo ${interpreter#${INTERPRETER_PATH}}
-		fi
+		echo "${exe}"
 	done
 }
 
-set_python_subver() {
-	local target=${1}
-	local subver=${target%.*}
-	mkdir -p "${ENV_D_PATH}/python"
-	echo "${target}" > "${ENV_D_PATH}/python/${subver}"
+# Get list of all preference values from python-exec.conf. This
+# includes both preferred implementations (in preference order)
+# and disabled interpreters.
+get_all_preferences() {
+	local l
+	while read l; do
+		# skip comments
+		[[ ${l} == '#'* ]] && continue
+
+		# note: empty lines are stripped through word splitting
+		echo "${l}"
+	done <"${CONFIG_PATH}"
 }
 
-set_python() {
-	local target="${1}"
-	mkdir -p "${ENV_D_PATH}/python"
-	echo "${target}" > "${ENV_D_PATH}/python/config"
+# Get list of preferred Python interpreters, from python-exec.conf,
+# in preference order.
+# $1 can be --pyN to filter results to pythonN.?.
+get_preferred_pythons() {
+	local i
+	for i in $(get_all_preferences); do
+		# skip negative entries
+		[[ ${i} == -* ]] && continue
+		# apply filters
+		[[ ${1} == --py? && ${i} != python${1:4}* ]] && continue
+
+		echo "${i}"
+	done
 }
 
-# Try to remove python and python.1 symlinks
-remove_symlinks() {
-	local symlink symlink_target symlink_target_found
-	if [[ "${SET_MAIN_ACTIVE_PYTHON_INTERPRETER}" == "1" ]]; then
-		rm -f "${MAN_PATH}"python.1{,.gz,.bz2,.lzma,.xz,.lz} &> /dev/null || return 1
-	fi
+# Get list of explicitly disabled Python interpreters, from
+# python-exec.conf, in file order.
+get_disabled_pythons() {
+	local i
+	for i in $(get_all_preferences); do
+		# process only negative entries
+		[[ ${i} == -* ]] || continue
 
-	# Files of Mac OS X framework
-	rm -f "${INTERPRETER_PATH%/bin/}/lib/Python.framework}"/{Headers,Python,Resources}
+		echo "${i#-}"
+	done
+}
+
+# Get combined list of preferred, installed and disabled Python
+# interpreters, in preference order.
+# $1 can be --pyN to filter results to pythonN.?.
+get_all_pythons() {
+	local targets=( $(get_installed_pythons "${@}") )
+	local preferred=( $(get_preferred_pythons "${@}") )
+	local disabled=( $(get_disabled_pythons "${@}") )
+	local i
+
+	# preferred first
+	for i in "${preferred[@]}"; do
+		echo "${i}"
+	done
+	# active then
+	for i in "${targets[@]}"; do
+		has "${i}" "${preferred[@]}" && continue
+		has "${i}" "${disabled[@]}" && continue
+		echo "${i}"
+	done
+	# disabled last
+	for i in "${targets[@]}"; do
+		has "${i}" "${disabled[@]}" || continue
+		echo "${i}"
+	done
+}
+
+# Write new preference list. Preferences need to be passed
+# as parameters (${@}).
+write_preferences() {
+	sed -n -e '/^#/p' "${CONFIG_PATH}" > "${CONFIG_PATH}".new || die
+	local IFS=$'\n'
+	echo "${*}" >> "${CONFIG_PATH}".new || die
+
+	mv "${CONFIG_PATH}".new "${CONFIG_PATH}" || die
 }
 
 # Set a man page symlink
 set_man_symlink() {
-	local target="${1}" x extension
+	local target=${1} x suffix
 
-	for x in ".1" ".1.bz2" ".1.gz" ".1.lzma" ".1.xz" ".1.lz"; do
-		if [[ -e "${MAN_PATH}${target}${x}" ]]; then
-			extension="${x}"
+	rm -f "${MAN_PATH}"/python.1{,.gz,.bz2,.lzma,.xz,.lz} || die
+
+	for x in .1{,.gz,.bz2,.lzma,.xz,.lz}; do
+		if [[ -e "${MAN_PATH}/${target}${x}" ]]; then
+			suffix=${x}
 			break
 		fi
 	done
 
-	if [[ -z "${extension}" ]]; then
+	if [[ ! ${suffix} ]]; then
 		echo "Couldn't find a man page for ${target}; skipping." 1>&2
 		return 1
 	fi
 
-	pushd "${MAN_PATH}" 1> /dev/null
-	ln -nfs "${target}${extension}" "python${extension}"
-	popd 1> /dev/null
+	ln -nfs "${target}${extension}" "${MAN_PATH}/python${extension}" || die
 }
 
-# Set python-config script and appropriate symlinks
-set_scripts_and_symlinks() {
-	local target="${1}" targets=($(find_targets))
-	if is_number "${target}" && [[ ${target} -ge 1 ]]; then
-		target=${targets[$((${target} - 1))]}
-	fi
+# Set OSX framework symlinks
+set_osx_framework() {
+	local target=${1}
 
-	if ! has ${target} "${targets[@]}"; then
-		die -q "Invalid target ${target}"
-	fi
-	if [[ -f "${INTERPRETER_PATH}${target}" ]]; then
-		if ! remove_symlinks; then
-			die -q "Cannot remove symlinks"
-		fi
-
-		if [[ "${SET_MAIN_ACTIVE_PYTHON_INTERPRETER}" == "1" ]]; then
-			set_man_symlink "${target}"
-		fi
-
-		pushd "${INTERPRETER_PATH}" 1> /dev/null
-
-		set_python_subver "${target}"
-		if [[ "${SET_MAIN_ACTIVE_PYTHON_INTERPRETER}" == "1" ]]; then
-			set_python "${target}"
-
-			# Files of Mac OS X framework
-			local framework_dir="${INTERPRETER_PATH%/bin/}/lib/Python.framework"
-			if [[ -d "${framework_dir}" ]]; then
-				local version="${target#python}"
-				pushd "${framework_dir}" 1> /dev/null
-				ln -nfs "Versions/${version}/Headers"
-				ln -nfs "Versions/${version}/Python"
-				ln -nfs "Versions/${version}/Resources"
-				popd 1> /dev/null
-			fi
-		fi
-
-		popd 1> /dev/null
-	else
-		die -q "Target \"${1}\" doesn't appear to be valid!"
+	# Files of Mac OS X framework
+	local framework_dir="${INTERPRETER_DIR%/bin}"/lib/Python.framework
+	if [[ -d ${framework_dir} ]]; then
+		local version=${target#python}
+		pushd "${framework_dir}" >/dev/null || die
+		rm -f Headers Python Resources || die
+		ln -nfs "Versions/${version}/Headers" || die
+		ln -nfs "Versions/${version}/Python" || die
+		ln -nfs "Versions/${version}/Resources" || die
+		popd >/dev/null || die
 	fi
 }
 
 # Set the content of /etc/env.d/65python-docs
 set_python_docs() {
-	local path target="${1#python}" variable
-	rm -f "${ENV_D_PATH}/65python-docs"
-	if [[ -f "${ENV_D_PATH}/60python-docs-${target}" ]]; then
+	local path target=${1#python} variable
+	rm -f "${ENV_D_PATH}/65python-docs" || die
+	if [[ -f ${ENV_D_PATH}/60python-docs-${target} ]]; then
 		variable="PYTHONDOCS_${target//./_}"
-		path="$(. "${ENV_D_PATH}/60python-docs-${target}"; echo -n "${!variable}")"
-		if [[ -d "${path}" ]]; then
+		path="$(. "${ENV_D_PATH}/60python-docs-${target}"; echo "${!variable}")"
+		if [[ -d ${path} ]]; then
 			echo "PYTHONDOCS=\"${path}\"" > "${ENV_D_PATH}/65python-docs"
 		fi
 	fi
 }
 
+# Perform all necessary updates following preference list change.
+post_update() {
+	local main_interp=$(do_show)
+
+	# TODO: update only when necessary
+
+	set_man_symlink "${main_interp}"
+	set_osx_framework "${main_interp}"
+	set_python_docs "${main_interp}"
+}
+
 ### show action ###
 
 describe_show() {
-	echo "Show main active Python interpreter"
+	echo "Show the most preferred Python interpreter"
 }
 
 describe_show_options() {
-	echo "--ABI         : Show Python ABI in format of PYTHON_ABI variable"
-	echo "--python2     : Show active Python 2 interpreter"
-	echo "--python3     : Show active Python 3 interpreter"
+	echo "--ABI         : use PYTHON_ABI variable format (deprecated)"
+	echo "--pref-only   : consider only explicitly preferred impls"
+	echo "--python2     : show the preferred version of Python 2"
+	echo "--python3     : show the preferred version of Python 3"
 }
 
 do_show() {
-	local ABI="0" interpreter python2="0" python3="0"
-	while [[ $# > 0 ]]; do
-		case "$1" in
+	local abi filter interpreter pref_only
+	while [[ ${#} -gt 0 ]]; do
+		case ${1} in
 			--ABI)
-				ABI="1"
+				abi=1
 				;;
-			--python2)
-				python2="1"
+			--pref-only)
+				pref_only=1
 				;;
-			--python3)
-				python3="1"
+			--python2|--py2)
+				filter=--py2
+				;;
+			--python3|--py3)
+				filter=--py3
 				;;
 			*)
 				die -q "Unrecognized argument '$1'"
@@ -166,30 +203,25 @@ do_show() {
 		shift
 	done
 
-	if [[ "${python2}" == "1" && "${python3}" == "1" ]]; then
-		die -q "'--python2' and '--python3' options cannot be specified simultaneously"
+	local preferred=( $(get_preferred_pythons ${filter}) )
+	local installed=()
+	if [[ ! ${pref_only} ]]; then
+		installed=( $(get_installed_pythons ${filter}) )
 	fi
 
-	if [[ "${python2}" == "1" ]]; then
-		if [[ -f ${ENV_D_PATH}/python/python2 ]]; then
-			interpreter="$(<"${ENV_D_PATH}/python/python2")"
-		fi
-	elif [[ "${python3}" == "1" ]]; then
-		if [[ -f ${ENV_D_PATH}/python/python3 ]]; then
-			interpreter="$(<"${ENV_D_PATH}/python/python3")"
-		fi
-	elif [[ -f "${ENV_D_PATH}/python/config" ]]; then
-		interpreter="$(<"${ENV_D_PATH}/python/config")"
-	fi
+	# preferred are preferred, but fall back to anything
+	local i
+	for i in "${preferred[@]}" "${installed[@]}"; do
+		# skip if not installed
+		has "${i}" "${installed[@]}" || continue
+		interpreter=${i}
+		break
+	done
 
-	if [[ "${ABI}" == "1" ]]; then
-		echo -n "${interpreter#python}"
+	if [[ ${abi} ]]; then
+		echo "${interpreter#python}"
 	else
-		echo -n "${interpreter}"
-	fi
-
-	if [[ -n "${interpreter}" ]]; then
-		echo
+		echo "${interpreter}"
 	fi
 }
 
@@ -200,25 +232,19 @@ describe_list() {
 }
 
 describe_list_options() {
-	echo "--python2     : List installed Python 2 interpreters"
-	echo "--python3     : List installed Python 3 interpreters"
+	echo "--python2     : list only Python 2 interpreters"
+	echo "--python3     : list only Python 3 interpreters"
 }
 
 do_list() {
-	local active i python_descriptive_name="Python" python_version_option= python2="0" python3="0" targets=()
-	while [[ $# > 0 ]]; do
-		case "$1" in
-			--python2)
-				python2="1"
-				python_descriptive_name="Python 2"
-				python_version_option="--python2"
-				PYTHON_INTERPRETERS_GROUP="2"
+	local filter
+	while [[ ${#} -gt 0 ]]; do
+		case ${1} in
+			--python2|--py2)
+				filter=--py2
 				;;
-			--python3)
-				python3="1"
-				python_descriptive_name="Python 3"
-				python_version_option="--python3"
-				PYTHON_INTERPRETERS_GROUP="3"
+			--python3|--py3)
+				filter=--py3
 				;;
 			*)
 				die -q "Unrecognized argument '$1'"
@@ -227,32 +253,31 @@ do_list() {
 		shift
 	done
 
-	if [[ "${python2}" == "1" && "${python3}" == "1" ]]; then
-		die -q "'--python2' and '--python3' options cannot be specified simultaneously"
-	fi
+	local all=( $(get_all_pythons ${filter}) )
+	local preferred=( $(get_preferred_pythons ${filter}) )
+	local disabled=( $(get_disabled_pythons) )
 
-	targets=($(find_targets))
+	write_list_start "Available Python${filter+ ${filter#--py}} interpreters, in order of preference:"
 
-	write_list_start "Available ${python_descriptive_name} interpreters:"
-
-	active="$(do_show ${python_version_option})"
-	for ((i = 0; i < ${#targets[@]}; i++)); do
-		if [[ ${targets[${i}]} == ${active} ]]; then
-			targets[${i}]="$(highlight_marker "${targets[${i}]}")"
+	for (( i = 0; i < ${#all[@]}; ++i )); do
+		if has "${all[i]}" "${preferred[@]}"; then
+			all[i]=$(highlight_marker "${all[i]}")
+		elif has "${all[i]}" "${disabled[@]}"; then
+			all[i]=$(highlight_marker "${all[i]}" "$(highlight_warning -)")
 		fi
 	done
-	write_numbered_list -m "(none found)" "${targets[@]}"
+	write_numbered_list -m "(none found)" "${all[@]}"
 }
 
 ### set action ###
 
 describe_set() {
-	echo "Set main active Python interpreter"
+	echo "Set the preferred Python interpreter"
 }
 
 describe_set_options() {
-	echo "--python2     : Set active Python 2 interpreter without setting of main active Python interpreter if it is not set to Python 2"
-	echo "--python3     : Set active Python 3 interpreter without setting of main active Python interpreter if it is not set to Python 3"
+	echo "--python2     : update preference for Python 2 versions only"
+	echo "--python3     : update preference for Python 3 versions only"
 }
 
 describe_set_parameters() {
@@ -260,17 +285,14 @@ describe_set_parameters() {
 }
 
 do_set() {
-	local main_active_python_interpreter python2="0" python3="0"
-	SET_MAIN_ACTIVE_PYTHON_INTERPRETER="1"
-	while [[ $# > 0 ]]; do
-		case "$1" in
-			--python2)
-				python2="1"
-				PYTHON_INTERPRETERS_GROUP="2"
+	local filter
+	while [[ ${#} -gt 0 ]]; do
+		case ${1} in
+			--python2|--py2)
+				filter=--py2
 				;;
-			--python3)
-				python3="1"
-				PYTHON_INTERPRETERS_GROUP="3"
+			--python3|--py3)
+				filter=--py3
 				;;
 			*)
 				break
@@ -279,62 +301,74 @@ do_set() {
 		shift
 	done
 
-	if [[ "${python2}" == "1" && "${python3}" == "1" ]]; then
-		die -q "'--python2' and '--python3' options cannot be specified simultaneously"
+	[[ ${#} -eq 1 ]] || die "Usage: eselect python set <interpreter>"
+
+	local target=${1}
+	local targets=( $(get_all_pythons ${filter}) )
+	if is_number "${target}" \
+		&& [[ ${target} -ge 1 && ${target} -le ${#targets[@]} ]]
+	then
+		target=${targets[target-1]}
 	fi
 
-	if [[ $# -lt 1 ]]; then
-		die -q "'eselect python set' requires Python interpreter filename"
-	elif [[ $# -gt 1 ]]; then
-		die -q "'eselect python set' requires 1 argument"
-	else
-		main_active_python_interpreter="$(do_show)"
-		if [[ "${python2}" == "1" && "${main_active_python_interpreter}" != "python2."* ]]; then
-			SET_MAIN_ACTIVE_PYTHON_INTERPRETER="0"
-		elif [[ "${python3}" == "1" && "${main_active_python_interpreter}" != "python3."* ]]; then
-			SET_MAIN_ACTIVE_PYTHON_INTERPRETER="0"
+	has "${target}" "${targets[@]}" || die "Invalid target: ${target}"
+
+	local prefs=( $(get_all_preferences) )
+
+	local i target_idx
+	for (( i = 0; i < ${#prefs[@]}; ++i )); do
+		# find first positive preference matching the filter
+		if [[ ! ${target_idx} ]]; then
+			if [[ ( ${filter} == --py? && ${prefs[i]} == python${filter:4}* ) \
+				|| ( ! ${filter} && ${prefs[i]} != -* ) ]]
+			then
+				target_idx=${i}
+			fi
 		fi
 
-		if ! set_scripts_and_symlinks "${1}"; then
-			die -q "Can't set new provider"
-		fi
+		# remove all duplicate positive and negative entries for target
+		[[ ${prefs[i]#-} == ${target} ]] && unset 'prefs[i]'
+	done
+	# if none matched, add to the bottom
+	: "${target_idx=${#prefs[@]}}"
 
-		if [[ "${SET_MAIN_ACTIVE_PYTHON_INTERPRETER}" == "1" ]]; then
-			set_python_docs "${1}"
-		fi
-	fi
+	# add between remaining preferences, before the one matching
+	# need to do this outta loop in case no pref matches
+	prefs=( "${prefs[@]:0:target_idx}" "${target}" "${prefs[@]:target_idx}" )
+
+	write_preferences "${prefs[@]}"
+	post_update
 }
 
 ### update action ###
 
 describe_update() {
-	echo "Switch to the most recent CPython interpreter"
+	echo "Switch to the most recent Python interpreter"
 }
 
 describe_update_options() {
-	echo "--if-unset    : Do not override existing implementation"
-	echo "--ignore SLOT : Ignore SLOT when setting symlinks"
-	echo "--python2     : Set active Python 2 interpreter without setting of main active Python interpreter if it is not set to Python 2"
-	echo "--python3     : Set active Python 3 interpreter without setting of main active Python interpreter if it is not set to Python 3"
+	echo "--if-unset    : do not alter preferences unless there is no valid preference set"
+	echo "--ignore SLOT : ignore specified Python slots"
+	echo "--python2     : update only Python 2 preferences"
+	echo "--python3     : update only Python 3 preferences"
 }
 
 do_update() {
-	local if_unset="0" ignored_slots=() interpreters="python?.?@EXEEXT@" python2="0" python3="0" python_version_option= slot= target targets=()
-	while [[ $# > 0 ]]; do
-		case "$1" in
+	local if_unset ignored_slots=() filter
+	while [[ ${#} -gt 0 ]]; do
+		case ${1} in
 			--if-unset)
-				if_unset="1"
+				if_unset=1
 				;;
 			--ignore)
-				ignored_slots+=("${2}")
-				shift;;
-			--python2)
-				python2="1"
-				python_version_option="--python2"
+				ignored_slots+=( "${2}" )
+				shift
 				;;
-			--python3)
-				python3="1"
-				python_version_option="--python3"
+			--python2|--py2)
+				filter=--py2
+				;;
+			--python3|--py3)
+				filter=--py3
 				;;
 			*)
 				die -q "Unrecognized argument '$1'"
@@ -343,37 +377,24 @@ do_update() {
 		shift
 	done
 
-	if [[ "${python2}" == "1" && "${python3}" == "1" ]]; then
-		die -q "'--python2' and '--python3' options cannot be specified simultaneously"
+	if [[ ${if_unset} ]]; then
+		local current=$(do_show ${filter} --pref-only)
+
+		[[ ${current} ]] && return
 	fi
 
-	if [[ "${if_unset}" == "1" && -f "${ENV_D_PATH}/python/config" ]]; then
-		if [[ "${python2}" == "1" && -f "${ENV_D_PATH}/python/python2" ]]; then
-			return
-		elif [[ "${python3}" == "1" && -f "${ENV_D_PATH}/python/python3" ]]; then
-			return
-		elif [[ "${python2}" == "0" && "${python3}" == "0" ]]; then
-			return
-		fi
-	fi
-
-	if [[ "${python2}" == "1" ]]; then
-		interpreters="python2.?@EXEEXT@"
-	elif [[ "${python3}" == "1" ]]; then
-		interpreters="python3.?@EXEEXT@"
-	fi
-
-	targets=($(cd "${INTERPRETER_PATH}"; ls ${interpreters} 2> /dev/null | sort -r))
+	local targets=( $(get_installed_pythons ${filter}) )
 
 	# Ignore slots
+	local slot
 	for slot in ${ignored_slots[@]}; do
-		targets=(${targets[@]/python${slot}/})
+		targets=( ${targets[@]/python${slot}/} )
 	done
 
-	if [[ ${#targets[@]} -gt 0 ]]; then
-		target=${targets[0]}
+	if [[ ${targets[@]} ]]; then
+		local target=${targets[0]}
 		echo "Switching to ${target}"
-		do_set ${python_version_option} ${target}
+		do_set ${filter} "${target}"
 	else
 		die -q "No Python interpreter available"
 	fi
