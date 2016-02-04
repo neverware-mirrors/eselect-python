@@ -336,6 +336,7 @@ do_set() {
 	# need to do this outta loop in case no pref matches
 	prefs=( "${prefs[@]:0:target_idx}" "${target}" "${prefs[@]:target_idx}" )
 
+	umask 022
 	write_preferences "${prefs[@]}"
 	post_update
 }
