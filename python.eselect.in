@@ -167,6 +167,18 @@ post_update() {
 	set_python_docs "${main_interp}"
 }
 
+### edit action ###
+
+describe_edit() {
+	echo "Edit the interpreter preference list"
+}
+
+do_edit() {
+	[[ ${EDITOR} ]] || die "EDITOR is not set"
+
+	${EDITOR} "${CONFIG_PATH}"
+}
+
 ### show action ###
 
 describe_show() {
