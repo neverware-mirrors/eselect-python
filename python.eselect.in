@@ -362,7 +362,7 @@ describe_update() {
 describe_update_options() {
 	echo "--if-unset    : do not alter preferences unless there is no valid preference set"
 	echo "--ignore SLOT : ignore specified Python slots"
-	echo "--python2     : update only Python 2 preferences"
+	echo "--python2     : update only Python 2 preferences (ignored)"
 	echo "--python3     : update only Python 3 preferences"
 }
 
@@ -379,6 +379,8 @@ do_update() {
 				;;
 			--python2|--py2)
 				filter=--py2
+				echo "Ignoring Python 2 preference update as non-meaningful"
+				return 0
 				;;
 			--python3|--py3)
 				filter=--py3
