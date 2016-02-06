@@ -182,6 +182,8 @@ do_edit() {
 	[[ ${EDITOR} ]] || die "EDITOR is not set"
 
 	${EDITOR} "${CONFIG_PATH}"
+
+	post_update
 }
 
 ### show action ###
