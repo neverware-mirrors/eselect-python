@@ -216,14 +216,14 @@ do_show() {
 	done
 
 	local preferred=( $(get_preferred_pythons ${filter}) )
-	local installed=()
-	if [[ ! ${pref_only} ]]; then
-		installed=( $(get_installed_pythons ${filter}) )
-	fi
+	local installed=( $(get_installed_pythons ${filter}) )
 
+	local all=( "${preferred[@]}" )
 	# preferred are preferred, but fall back to anything
+	[[ ${pref_only} ]] || all+=( "${installed[@]}" )
+
 	local i
-	for i in "${preferred[@]}" "${installed[@]}"; do
+	for i in "${all[@]}"; do
 		# skip if not installed
 		has "${i}" "${installed[@]}" || continue
 		interpreter=${i}
