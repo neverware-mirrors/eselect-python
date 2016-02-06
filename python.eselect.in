@@ -163,13 +163,13 @@ set_python_docs() {
 
 # Perform all necessary updates following preference list change.
 post_update() {
-	local main_interp=$(do_show)
+	local main_cpython=$(do_show --cpython)
 
 	# TODO: update only when necessary
 
-	set_man_symlink "${main_interp}"
-	set_osx_framework "${main_interp}"
-	set_python_docs "${main_interp}"
+	set_man_symlink "${main_cpython}"
+	set_osx_framework "${main_cpython}"
+	set_python_docs "${main_cpython}"
 }
 
 ### edit action ###
