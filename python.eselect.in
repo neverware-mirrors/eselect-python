@@ -14,7 +14,14 @@ MAN_PATH="${EROOT%/}/usr/share/man/man1"
 # Get list of all installed Python interpreters, in lexical order.
 # $1 can be --pyN to filter results to pythonN.?.
 get_installed_pythons() {
-	local exes=( "${INTERPRETER_DIR}"/python?.?@EXEEXT@ )
+	local exes=(
+		# note: order *matters*
+		# TODO: get them outta python-exec
+		"${INTERPRETER_DIR}"/jython?.?@EXEEXT@
+		"${INTERPRETER_DIR}"/pypy{,3}@EXEEXT@
+		"${INTERPRETER_DIR}"/python?.?@EXEEXT@
+	)
+
 	local i
 	for (( i = ${#exes[@]}-1; i >= 0; --i )); do
 		local exe=${exes[i]}
