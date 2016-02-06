@@ -32,6 +32,8 @@ get_installed_pythons() {
 # includes both preferred implementations (in preference order)
 # and disabled interpreters.
 get_all_preferences() {
+	[[ -e ${CONFIG_PATH} ]] || return
+
 	local l
 	while read l; do
 		# skip comments
@@ -98,7 +100,10 @@ get_all_pythons() {
 # Write new preference list. Preferences need to be passed
 # as parameters (${@}).
 write_preferences() {
-	sed -n -e '/^#/p' "${CONFIG_PATH}" > "${CONFIG_PATH}".new || die
+	if [[ -e ${CONFIG_PATH} ]]; then
+		sed -n -e '/^#/p' "${CONFIG_PATH}" > "${CONFIG_PATH}".new || die
+	fi
+
 	local IFS=$'\n'
 	echo "${*}" >> "${CONFIG_PATH}".new || die
 
