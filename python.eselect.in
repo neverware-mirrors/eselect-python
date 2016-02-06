@@ -22,7 +22,7 @@ get_installed_pythons() {
 		exe=${exe##*/}
 		exe=${exe%@EXEEXT@}
 		# apply filters
-		[[ ${1} == --py? && ${exe} != python${1:4}* ]] && continue
+		[[ ${1} == --py* && ${exe} != python${1:4}* ]] && continue
 
 		echo "${exe}"
 	done
@@ -53,7 +53,7 @@ get_preferred_pythons() {
 		# skip negative entries
 		[[ ${i} == -* ]] && continue
 		# apply filters
-		[[ ${1} == --py? && ${i} != python${1:4}* ]] && continue
+		[[ ${1} == --py* && ${i} != python${1:4}* ]] && continue
 
 		echo "${i}"
 	done
@@ -194,9 +194,10 @@ describe_show() {
 
 describe_show_options() {
 	echo "--ABI         : use PYTHON_ABI variable format (deprecated)"
+	echo "--cpython     : show the preferred version of CPython"
 	echo "--pref-only   : consider only explicitly preferred impls"
-	echo "--python2     : show the preferred version of Python 2"
-	echo "--python3     : show the preferred version of Python 3"
+	echo "--python2     : show the preferred version of CPython 2"
+	echo "--python3     : show the preferred version of CPython 3"
 }
 
 do_show() {
@@ -205,6 +206,9 @@ do_show() {
 		case ${1} in
 			--ABI)
 				abi=1
+				;;
+			--cpython|--py)
+				filter=--py
 				;;
 			--pref-only)
 				pref_only=1
@@ -251,14 +255,18 @@ describe_list() {
 }
 
 describe_list_options() {
-	echo "--python2     : list only Python 2 interpreters"
-	echo "--python3     : list only Python 3 interpreters"
+	echo "--cpython     : list only CPython interpreters"
+	echo "--python2     : list only CPython 2 interpreters"
+	echo "--python3     : list only CPython 3 interpreters"
 }
 
 do_list() {
 	local filter
 	while [[ ${#} -gt 0 ]]; do
 		case ${1} in
+			--cpython|--py)
+				filter=--py
+				;;
 			--python2|--py2)
 				filter=--py2
 				;;
@@ -295,8 +303,9 @@ describe_set() {
 }
 
 describe_set_options() {
-	echo "--python2     : update preference for Python 2 versions only"
-	echo "--python3     : update preference for Python 3 versions only"
+	echo "--cpython     : update preference for CPython versions only"
+	echo "--python2     : update preference for CPython 2 versions only"
+	echo "--python3     : update preference for CPython 3 versions only"
 }
 
 describe_set_parameters() {
@@ -307,6 +316,9 @@ do_set() {
 	local filter
 	while [[ ${#} -gt 0 ]]; do
 		case ${1} in
+			--cpython|--py)
+				filter=--py
+				;;
 			--python2|--py2)
 				filter=--py2
 				;;
@@ -369,8 +381,9 @@ describe_update() {
 describe_update_options() {
 	echo "--if-unset    : do not alter preferences unless there is no valid preference set"
 	echo "--ignore SLOT : ignore specified Python slots"
-	echo "--python2     : update only Python 2 preferences (ignored)"
-	echo "--python3     : update only Python 3 preferences"
+	echo "--cpython     : update only CPython preferences"
+	echo "--python2     : update only CPython 2 preferences (ignored)"
+	echo "--python3     : update only CPython 3 preferences"
 }
 
 do_update() {
@@ -383,6 +396,9 @@ do_update() {
 			--ignore)
 				ignored_slots+=( "${2}" )
 				shift
+				;;
+			--cpython|--py)
+				filter=--py
 				;;
 			--python2|--py2)
 				filter=--py2
