@@ -135,7 +135,7 @@ set_man_symlink() {
 		return 1
 	fi
 
-	ln -nfs "${target}${extension}" "${MAN_PATH}/python${extension}" || die
+	ln -nfs "${target}${suffix}" "${MAN_PATH}/python${suffix}" || die
 }
 
 # Set OSX framework symlinks
