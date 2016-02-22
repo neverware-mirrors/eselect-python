@@ -1,8 +1,6 @@
 AC_INIT([eselect-python], [20160207])
 AM_INIT_AUTOMAKE([-Wall foreign no-dist-gzip dist-bzip2])
 
-# note: we need AC_PROG_CC to determine EXEEXT (AC_EXEEXT does not work)
-AC_PROG_CC
 AC_PATH_PROG(INSTALL, install)
 AC_PROG_MKDIR_P
 
