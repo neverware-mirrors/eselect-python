@@ -294,10 +294,10 @@ do_list() {
 	write_list_start "Available Python${filter+ ${filter#--py}} interpreters, in order of preference:"
 
 	for (( i = 0; i < ${#all[@]}; ++i )); do
-		if has "${all[i]}" "${preferred[@]}"; then
-			all[i]=$(highlight_marker "${all[i]}")
-		elif has "${all[i]}" "${disabled[@]}"; then
-			all[i]=$(highlight_marker "${all[i]}" "$(highlight_warning -)")
+		if has "${all[i]}" "${disabled[@]}"; then
+			all[i]=$(highlight_marker "${all[i]}" "$(highlight_warning "(disabled)")")
+		elif ! has "${all[i]}" "${preferred[@]}"; then
+			all[i]=$(highlight_marker "${all[i]}" "(fallback)")
 		fi
 	done
 	write_numbered_list -m "(none found)" "${all[@]}"
