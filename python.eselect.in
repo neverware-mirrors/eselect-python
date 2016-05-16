@@ -21,7 +21,7 @@ get_installed_pythons() {
 		# filter by type
 		[[ ${1} == --py* && ${i} != python${1:4}* ]] && continue
 		# filter to installed only
-		if [[ -x ${INTERPRETER_PATH}/${i} ]]; then
+		if [[ -x ${INTERPRETER_DIR}/${i} ]]; then
 			echo "${i}"
 		fi
 	done < <("${INTERPRETER_DIR}"/python-exec2c -l)
