@@ -24,7 +24,7 @@ get_installed_pythons() {
 		if [[ -x ${INTERPRETER_DIR}/${i} ]]; then
 			echo "${i}"
 		fi
-	done < <("${INTERPRETER_DIR}"/python-exec2c -l)
+	done < <(python-exec2c -l)
 }
 
 # Get list of all preference values from python-exec.conf. This
