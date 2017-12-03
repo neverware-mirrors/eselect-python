@@ -171,6 +171,92 @@ post_update() {
 	set_python_docs "${main_cpython}"
 }
 
+### cleanup action ###
+
+describe_cleanup() {
+	echo "Remove stale implementations from list"
+}
+
+do_cleanup() {
+	local installed=( $(get_installed_pythons) )
+	local prefs=( $(get_all_preferences) )
+
+	local i target_idx
+	for (( i = 0; i < ${#prefs[@]}; ++i )); do
+		# remove preferences for uninstalled interpreters
+		if ! has "${prefs[i]#-}" "${installed[@]}"; then
+			unset 'prefs[i]'
+		fi
+	done
+
+	umask 022
+	write_preferences "${prefs[@]}"
+
+	post_update
+}
+
+### show action ###
+
+describe_show() {
+	echo "Show the most preferred Python interpreter"
+}
+
+describe_show_options() {
+	echo "--ABI         : use PYTHON_ABI variable format (deprecated)"
+	echo "--cpython     : show the preferred version of CPython"
+	echo "--pref-only   : consider only explicitly preferred impls"
+	echo "--python2     : show the preferred version of CPython 2"
+	echo "--python3     : show the preferred version of CPython 3"
+}
+
+do_show() {
+	local abi filter interpreter pref_only
+	while [[ ${#} -gt 0 ]]; do
+		case ${1} in
+			--ABI)
+				abi=1
+				;;
+			--cpython|--py)
+				filter=--py
+				;;
+			--pref-only)
+				pref_only=1
+				;;
+			--python2|--py2)
+				filter=--py2
+				;;
+			--python3|--py3)
+				filter=--py3
+				;;
+			*)
+				die -q "Unrecognized argument '$1'"
+				;;
+		esac
+		shift
+	done
+
+	local preferred=( $(get_preferred_pythons ${filter}) )
+	local installed=( $(get_installed_pythons ${filter}) )
+
+	local all=( "${preferred[@]}" )
+	# preferred are preferred, but fall back to anything
+	[[ ${pref_only} ]] || all+=( "${installed[@]}" )
+
+	local i
+	for i in "${all[@]}"; do
+		# skip if not installed
+		has "${i}" "${installed[@]}" || continue
+		interpreter=${i}
+		break
+	done
+
+	if [[ ${abi} ]]; then
+		echo "${interpreter#python}"
+	else
+		echo "${interpreter}"
+	fi
+}
+
 ### edit action ###
 
 describe_edit() {
