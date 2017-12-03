@@ -202,7 +202,6 @@ describe_show() {
 }
 
 describe_show_options() {
-	echo "--ABI         : use PYTHON_ABI variable format (deprecated)"
 	echo "--cpython     : show the preferred version of CPython"
 	echo "--pref-only   : consider only explicitly preferred impls"
 	echo "--python2     : show the preferred version of CPython 2"
@@ -210,12 +209,9 @@ describe_show_options() {
 }
 
 do_show() {
-	local abi filter interpreter pref_only
+	local filter interpreter pref_only
 	while [[ ${#} -gt 0 ]]; do
 		case ${1} in
-			--ABI)
-				abi=1
-				;;
 			--cpython|--py)
 				filter=--py
 				;;
@@ -250,11 +246,7 @@ do_show() {
 		break
 	done
 
-	if [[ ${abi} ]]; then
-		echo "${interpreter#python}"
-	else
-		echo "${interpreter}"
-	fi
+	echo "${interpreter}"
 }
 
 ### edit action ###
@@ -278,7 +270,6 @@ describe_show() {
 }
 
 describe_show_options() {
-	echo "--ABI         : use PYTHON_ABI variable format (deprecated)"
 	echo "--cpython     : show the preferred version of CPython"
 	echo "--pref-only   : consider only explicitly preferred impls"
 	echo "--python2     : show the preferred version of CPython 2"
@@ -286,12 +277,9 @@ describe_show_options() {
 }
 
 do_show() {
-	local abi filter interpreter pref_only
+	local filter interpreter pref_only
 	while [[ ${#} -gt 0 ]]; do
 		case ${1} in
-			--ABI)
-				abi=1
-				;;
 			--cpython|--py)
 				filter=--py
 				;;
@@ -326,11 +314,7 @@ do_show() {
 		break
 	done
 
-	if [[ ${abi} ]]; then
-		echo "${interpreter#python}"
-	else
-		echo "${interpreter}"
-	fi
+	echo "${interpreter}"
 }
 
 ### list action ###
