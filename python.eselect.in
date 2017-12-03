@@ -280,6 +280,7 @@ do_list() {
 	done
 
 	local all=( $(get_all_pythons ${filter}) )
+	local installed=( $(get_installed_pythons ${filter}) )
 	local preferred=( $(get_preferred_pythons ${filter}) )
 	local disabled=( $(get_disabled_pythons) )
 
@@ -288,6 +289,8 @@ do_list() {
 	for (( i = 0; i < ${#all[@]}; ++i )); do
 		if has "${all[i]}" "${disabled[@]}"; then
 			all[i]=$(highlight_marker "${all[i]}" "$(highlight_warning "(disabled)")")
+		elif ! has "${all[i]}" "${installed[@]}"; then
+			all[i]=$(highlight_marker "${all[i]}" "$(highlight_warning "(uninstalled)")")
 		elif ! has "${all[i]}" "${preferred[@]}"; then
 			all[i]=$(highlight_marker "${all[i]}" "(fallback)")
 		fi
