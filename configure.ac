@@ -1,4 +1,4 @@
-AC_INIT([eselect-python], [20160516])
+AC_INIT([eselect-python], [20171204])
 AM_INIT_AUTOMAKE([-Wall foreign no-dist-gzip dist-bzip2])
 
 # Create output files.
