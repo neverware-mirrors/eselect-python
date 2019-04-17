@@ -182,7 +182,8 @@ do_cleanup() {
 	local prefs=( $(get_all_preferences) )
 
 	local i target_idx
-	for (( i = 0; i < ${#prefs[@]}; ++i )); do
+	local num_prefs=${#prefs[@]}
+	for (( i = 0; i < num_prefs; ++i )); do
 		# remove preferences for uninstalled interpreters
 		if ! has "${prefs[i]#-}" "${installed[@]}"; then
 			unset 'prefs[i]'
@@ -419,7 +420,8 @@ do_set() {
 	local prefs=( $(get_all_preferences) )
 
 	local i target_idx
-	for (( i = 0; i < ${#prefs[@]}; ++i )); do
+	local num_prefs=${#prefs[@]}
+	for (( i = 0; i < num_prefs; ++i )); do
 		# find first positive preference matching the filter
 		if [[ ! ${target_idx} ]]; then
 			if [[ ( ${filter} == --py? && ${prefs[i]} == python${filter:4}* ) \
@@ -433,7 +435,7 @@ do_set() {
 		[[ ${prefs[i]#-} == ${target} ]] && unset 'prefs[i]'
 	done
 	# if none matched, add to the bottom
-	: "${target_idx=${#prefs[@]}}"
+	: "${target_idx=${num_prefs}}"
 
 	# add between remaining preferences, before the one matching
 	# need to do this outta loop in case no pref matches
