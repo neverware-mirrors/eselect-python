@@ -111,23 +111,10 @@ write_preferences() {
 
 # Set a man page symlink
 set_man_symlink() {
-	local target=${1} x suffix
+	local target=${1}
 
-	rm -f "${MAN_PATH}"/python.1{,.gz,.bz2,.lzma,.xz,.lz} || die
-
-	for x in .1{,.gz,.bz2,.lzma,.xz,.lz}; do
-		if [[ -e "${MAN_PATH}/${target}${x}" ]]; then
-			suffix=${x}
-			break
-		fi
-	done
-
-	if [[ ! ${suffix} ]]; then
-		echo "Couldn't find a man page for ${target}; skipping." 1>&2
-		return 1
-	fi
-
-	ln -nfs "${target}${suffix}" "${MAN_PATH}/python${suffix}" || die
+	rm -f "${MAN_PATH}"/python.1{,.{gz,bz2,lzma,xz,lz,zst{,d}}} || die
+	echo ".so ${target}.1" > "${MAN_PATH}"/python.1 || die
 }
 
 # Set OSX framework symlinks
